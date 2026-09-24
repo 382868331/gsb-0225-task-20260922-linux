@@ -37,6 +37,14 @@ class NonFiniteNumberError(InvalidMatrixError, ValueError):
     """数值输入为 NaN 或 ±Infinity。"""
 
 
+class NotAChainComplexError(SmithCertError):
+    """相邻边缘算子的乘积不为零：输入不是链复形。
+
+    链复形要求 ∂_k · ∂_{k+1} = 0（精确整数相等）。违例时抛此异常，
+    信息含乘积矩阵中第一个非零元的位置与数值，便于定位。
+    """
+
+
 class BudgetExhaustedError(SmithCertError, RuntimeError):
     """初等变换步数预算耗尽（搜索未能结束）。
 

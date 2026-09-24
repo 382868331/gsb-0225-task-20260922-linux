@@ -5,7 +5,10 @@
      det(U)=det(V)=±1、整除链、零在最后）；
   2) 该矩阵一个相容整数方程组的特解与整数零空间基（精确回代）；
   3) 一个“有理解但无整数解”的系统及其不可解余数证据；
-  4) 一个实际触发的输入拒绝边界（元素超上限，带定位信息）。
+  4) 一个实际触发的输入拒绝边界（元素超上限，带定位信息）；
+  5) 低维链复形的整系数同调：圆、填充三角形、含 Z/2 挠的代数例、
+     RP² 胞腔链（自由秩用独立的 Fraction 秩核验）；
+  6) 一个实际触发的链复形公理拒绝（∂₁·∂₂ ≠ 0，带定位信息）。
 
 全部输入为文件内确定性常量，无网络、无第三方依赖、无 sleep、
 无预录结果，运行时间远小于 8 秒。
@@ -15,6 +18,8 @@ from fractions import Fraction
 
 from smithcert import (
     MatrixLimitError,
+    NotAChainComplexError,
+    homology,
     smith,
     solve_integer,
 )
@@ -56,6 +61,56 @@ def show_matrix(name, M):
     print(f"{name} =")
     for row in M:
         print("   ", row)
+
+
+def rank_fraction(A):
+    """演示侧独立的有理数秩（Fraction 高斯消元，不调用被测核心）。"""
+    X = [[Fraction(v) for v in row] for row in A]
+    m, n = len(X), len(X[0])
+    r = 0
+    for col in range(n):
+        p = next((i for i in range(r, m) if X[i][col] != 0), None)
+        if p is None:
+            continue
+        X[r], X[p] = X[p], X[r]
+        piv = X[r][col]
+        for c in range(col, n):
+            X[r][c] /= piv
+        for i in range(m):
+            if i != r and X[i][col] != 0:
+                f = X[i][col]
+                for c in range(col, n):
+                    X[i][c] -= f * X[r][c]
+        r += 1
+    return r
+
+
+def show_group(grp):
+    parts = []
+    if grp.free_rank:
+        parts.append(f"Z^{grp.free_rank}" if grp.free_rank > 1 else "Z")
+    parts += [f"Z/{d}" for d in grp.torsion]
+    print(f"  H_{grp.degree} =", " ⊕ ".join(parts) if parts else "0")
+
+
+def demo_homology(title, boundaries):
+    print(title)
+    for i, B in enumerate(boundaries):
+        show_matrix(f"∂{i + 1}", B)
+    res = homology(boundaries)
+    for grp in res.groups:
+        show_group(grp)
+    # 独立核验：自由秩 = dim C_k − rank_Q(∂_k) − rank_Q(∂_{k+1})
+    ranks = [rank_fraction(B) for B in boundaries]
+    dim = len(boundaries)
+    ok = True
+    for k, grp in enumerate(res.groups):
+        n_k = len(boundaries[0]) if k == 0 else len(boundaries[k - 1][0])
+        expect = (n_k - (ranks[k - 1] if k else 0)
+                  - (ranks[k] if k < dim else 0))
+        ok = ok and (grp.free_rank == expect)
+    print("  独立核验 自由秩 = dim C_k − rank(∂_k) − rank(∂_{k+1}) :", ok)
+    print()
 
 
 def main():
@@ -150,6 +205,34 @@ def main():
         print("捕获 MatrixLimitError，可定位信息 ->", e)
     else:
         raise AssertionError("边界输入未被拒绝")
+
+    print()
+    print("=" * 70)
+    print("演示 5：低维链复形的整系数同调（自由秩与挠系数）")
+    print("=" * 70)
+    # 圆 S¹：3 顶点 3 边，∂e0=v1-v0, ∂e1=v2-v1, ∂e2=v2-v0
+    circle_d1 = [[-1, 0, -1], [1, -1, 0], [0, 1, 1]]
+    demo_homology("5a. 圆 S¹（3 顶点 3 边，H₀=Z, H₁=Z）", [circle_d1])
+    # 填充三角形：在圆上粘 2-单形 σ，∂σ = e0+e1-e2（列向量）
+    demo_homology("5b. 填充三角形（圆盘，H₀=Z，其余为 0）",
+                  [circle_d1, [[1], [1], [-1]]])
+    # 含 Z/2 挠的代数例子：C₁=Z → C₀=Z，∂₁=[2]
+    demo_homology("5c. 代数例 ∂₁=[2]（H₀=Z/2 挠）", [[[2]]])
+    # RP² 胞腔链：∂₂=[2], ∂₁=[0]，H₁=Z/2
+    demo_homology("5d. RP² 胞腔链（H₀=Z, H₁=Z/2）", [[[0]], [[2]]])
+
+    print("=" * 70)
+    print("演示 6：实际触发的链复形公理拒绝（∂₁·∂₂ ≠ 0）")
+    print("=" * 70)
+    bad_d1, bad_d2 = [[1, 0], [0, 1]], [[0], [3]]
+    print("∂₁ =", bad_d1, " ∂₂ =", bad_d2,
+          "（乘积在 (1,0) 处为 3 ≠ 0，不是链复形）")
+    try:
+        homology([bad_d1, bad_d2])
+    except NotAChainComplexError as e:
+        print("捕获 NotAChainComplexError，可定位信息 ->", e)
+    else:
+        raise AssertionError("非链复形输入未被拒绝")
 
 
 if __name__ == "__main__":

@@ -243,3 +243,27 @@ def fraction_independent(vectors, n):
     mat = [[Fraction(v) for v in vec] for vec in vectors]
     r = rational_rank(mat)
     return r == len(vectors) and len(vectors) <= n
+
+
+def expected_homology(boundaries):
+    """独立计算链复形各阶 (自由秩, 挠系数列表)。
+
+    自由秩：b_k = dim C_k − rank_Q(∂_k) − rank_Q(∂_{k+1})，秩用
+    Fraction 高斯消元独立求得（Betti 数只依赖有理秩）。
+    挠系数：∂_{k+1} 的大于 1 的 Smith 不变因子，由枚举全部子式的
+    行列式因子 Δ_k（gcd）独立求得 s_k = Δ_k/Δ_{k-1}。
+    不调用 smithcert 的任何核心代码。
+    """
+    dim = len(boundaries)
+    ranks = [rational_rank(B) for B in boundaries]
+    out = []
+    for k in range(dim + 1):
+        # dim C_k：k=0 取 ∂₁ 的行数，否则取 ∂_k 的列数
+        n_k = len(boundaries[0]) if k == 0 else len(boundaries[k - 1][0])
+        free = (n_k - (ranks[k - 1] if k >= 1 else 0)
+                - (ranks[k] if k < dim else 0))
+        torsion = []
+        if k < dim:
+            torsion = [d for d in expected_invariants(boundaries[k]) if d > 1]
+        out.append((free, torsion))
+    return out
