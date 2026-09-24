@@ -4,7 +4,9 @@
 """
 
 from .errors import (
+    BoundaryProductError,
     BudgetExhaustedError,
+    ChainComplexError,
     DimensionMismatchError,
     IntegerRequiredError,
     InvalidMatrixError,
@@ -13,6 +15,7 @@ from .errors import (
     NonFiniteNumberError,
     SmithCertError,
 )
+from .homology import HomologyGroup, HomologyResult, homology
 from .solve import Obstruction, IntegerSolveResult, solve_integer
 from .transform import Transform, replay
 from .smith import SmithResult, smith
@@ -20,16 +23,20 @@ from .smith import SmithResult, smith
 MAX_ROWS = 8
 MAX_COLS = 8
 MAX_ABS_ENTRY = 10_000
+MAX_CHAIN_DIM = 2
 DEFAULT_BUDGET = 100_000
 
 __all__ = [
     "smith",
     "solve_integer",
+    "homology",
     "replay",
     "Transform",
     "SmithResult",
     "IntegerSolveResult",
     "Obstruction",
+    "HomologyGroup",
+    "HomologyResult",
     "SmithCertError",
     "InvalidMatrixError",
     "MatrixShapeError",
@@ -38,8 +45,11 @@ __all__ = [
     "IntegerRequiredError",
     "NonFiniteNumberError",
     "BudgetExhaustedError",
+    "ChainComplexError",
+    "BoundaryProductError",
     "MAX_ROWS",
     "MAX_COLS",
     "MAX_ABS_ENTRY",
+    "MAX_CHAIN_DIM",
     "DEFAULT_BUDGET",
 ]

@@ -44,3 +44,15 @@ class BudgetExhaustedError(SmithCertError, RuntimeError):
     consistent=False 及余数证据，绝不抛此异常。在公开上限内正常输入
     不应触发；触发只表示搜索未完成，不代表任何数学结论。
     """
+
+
+class ChainComplexError(SmithCertError):
+    """链复形输入非法的基类（如相邻边界矩阵复合不为零）。"""
+
+
+class BoundaryProductError(ChainComplexError):
+    """相邻边界矩阵的复合非零：d_{p-1} * d_p != 0。
+
+    链复形定义要求所有相邻边界复合为零；错误信息带复合的阶数与乘积中
+    第一个非零元的定位（阶数、行、列、值）。
+    """
