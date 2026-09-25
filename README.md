@@ -16,11 +16,14 @@ Smith 标准形（SNF），并据此判定整数线性方程组 A x = b 的可�
 ## 准确命令
 
 ```bash
-# 必要测试（24 个测试用例，含数百次确定性随机子用例）
-python -m unittest discover -s tests -v
+# 必要测试（41 个测试用例，含数百次确定性随机子用例）
+./.venv/bin/python -m unittest discover -s tests -v
 
 # 固定输入演示（实测约 0.04 秒，远小于 8 秒；无 sleep、无预录结果）
-python demo.py
+./.venv/bin/python demo.py
+
+# 混合系统（等式 + 模同余）现场计算演示（实测约 0.004 秒，预算 90 秒）
+./.venv/bin/python demo_mixed.py
 ```
 
 在仓库根目录（本文件所在目录）执行。
@@ -65,6 +68,40 @@ python demo.py
   `d_i | c_i` 及零行 `c_i = 0`；特解由 `y_i = c_i/d_i`、`x = V y`
   直接整数构造；零空间基取 V 的第 rank…n−1 列（V 幺模，整数双射，
   故这是整数核本身的 Z-基，不存在有理基放大/取整）。
+
+
++### `solve_mixed(A, b, C, d, m, *, budget=100000) -> MixedSolveResult`
++
++同时求解整数等式与逐行模同余：`A x = b` 且每行
++`C_i · x ≡ d_i (mod m_i)`（`m_i` 为正整数）。
++
++- `A`、`b`：普通等式；`A=None`（此时 `b` 也必须为 `None`）表示无普通
++  等式，变量个数由 `C` 的列数确定。`C=None` 表示无同余。
++- `C`：q×n 整数矩阵；`d`、`m`：长度 q 的整数列表，`m_i ≥ 1`。
++  `m_i = 1` 的同余对任意整数恒成立，作为**无约束**处理：不引入
++  辅助变量，结果在 `dropped` 中记录其下标。
++- 方法：每条 `m_i > 1` 的同余引入**独立整数辅助变量** `t_i`，写成
++  `C_i·x − m_i·t_i = d_i`，与 `A x = b` 拼成增广系统 `Ã x̃ = b̃`，
++  直接调用 `solve_integer` 内核求解，再投影回前 n 个原变量坐标。
++- **增广规模上限**：增广行数 `p + q′` 与列数 `n + q′` 均不得超过 8
++  （q′ 为 `m_i > 1` 的同余条数），超限抛 `MatrixLimitError`；元素与
++  模数绝对值 ≤ 10000。
++- 返回 `MixedSolveResult`：
++  - `consistent=True`：`particular` 为原变量特解；`nullspace_basis`
++    为**投影后再整数规范化**的 Z-基——投影生成集可能冗余，库内对
++    其再做一次 Smith 规范化（`rowZ(G)=rowZ(UG)`，取 `UG` 非零行），
++    保证张成的格恰为全部原变量解差，无冗余、无遗漏；
++  - `consistent=False`：`obstruction` 为增广系统的可检查整数障碍
++    （`w·Ã` 各分量被 `modulus` 整除而 `w·b̃` 余 `remainder ≠ 0`，或
++    零行障碍），`w` 是增广证书 `U` 的一行，可独立按算术复核；
++  - `augmented_A`/`augmented_b`/`solve_result`：增广系统及其完整
++    整数求解结果；`transforms` 为增广变换链，可用
++    `replay(augmented_A, transforms)` 独立重放核验 `U·Ã·V = D`。
++- 模数非正（0 或负数）抛 `ModulusError`；模数为 bool/float 仍按
++  整数契约抛 `IntegerRequiredError`/`NonFiniteNumberError`。
++- 全程精确整数运算，**不存在对有理解取整**。
++
++旧入口 `smith` 与 `solve_integer` 行为不变；本功能不扩展整数同调。
 
 ## 输入与错误语义（先固定的契约）
 
@@ -130,10 +167,13 @@ smithcert/            题库（可 import）
   transform.py        Transform 日志与独立重放
   smith.py            Smith 标准形核心
   solve.py            Ax=b 整数可解判定、特解、零空间基、障碍证据
+  mixed.py            solve_mixed：等式+模同余混合系统（增广+投影规范化）
 tests/
   _oracle.py          独立参考（Fraction 消元、枚举子式行列式因子）
   test_smith.py       Smith 证书测试
   test_solve.py       整数求解测试
+  test_mixed.py       混合系统测试（手算用例 + 小盒独立枚举交叉验证）
 demo.py               固定输入演示
+demo_mixed.py         混合系统现场计算演示
 README.md
 ```

@@ -10,9 +10,11 @@ from .errors import (
     InvalidMatrixError,
     MatrixLimitError,
     MatrixShapeError,
+    ModulusError,
     NonFiniteNumberError,
     SmithCertError,
 )
+from .mixed import MixedSolveResult, solve_mixed
 from .solve import Obstruction, IntegerSolveResult, solve_integer
 from .transform import Transform, replay
 from .smith import SmithResult, smith
@@ -25,10 +27,12 @@ DEFAULT_BUDGET = 100_000
 __all__ = [
     "smith",
     "solve_integer",
+    "solve_mixed",
     "replay",
     "Transform",
     "SmithResult",
     "IntegerSolveResult",
+    "MixedSolveResult",
     "Obstruction",
     "SmithCertError",
     "InvalidMatrixError",
@@ -37,6 +41,7 @@ __all__ = [
     "MatrixLimitError",
     "IntegerRequiredError",
     "NonFiniteNumberError",
+    "ModulusError",
     "BudgetExhaustedError",
     "MAX_ROWS",
     "MAX_COLS",

@@ -37,6 +37,14 @@ class NonFiniteNumberError(InvalidMatrixError, ValueError):
     """数值输入为 NaN 或 ±Infinity。"""
 
 
+class ModulusError(InvalidMatrixError, ValueError):
+    """同余条件的模数不是正整数（如 0 或负数）。
+
+    类型层面的问题（bool/float/其他）仍由 IntegerRequiredError /
+    NonFiniteNumberError 报告；本异常只针对“是 int 但 ≤ 0”。
+    """
+
+
 class BudgetExhaustedError(SmithCertError, RuntimeError):
     """初等变换步数预算耗尽（搜索未能结束）。
 
