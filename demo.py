@@ -16,6 +16,7 @@ from fractions import Fraction
 from smithcert import (
     MatrixLimitError,
     smith,
+    solve_mixed,
     solve_integer,
 )
 
@@ -150,6 +151,54 @@ def main():
         print("捕获 MatrixLimitError，可定位信息 ->", e)
     else:
         raise AssertionError("边界输入未被拒绝")
+
+    print()
+    print("=" * 70)
+    print("演示 5：等式 + 模同余混合求解（solve_mixed）")
+    print("=" * 70)
+    # x + y = 4, 且 x ≡ 0 (mod 2)：x 任意偶数，y = 4 - x。
+    A5 = [[1, 1]]
+    b5 = [4]
+    C5 = [[1, 0]]
+    d5 = [0]
+    m5 = [2]
+    print("条件: x + y = 4;  x ≡ 0 (mod 2)")
+    s5 = solve_mixed(A5, b5, C5, d5, m5)
+    print("可解:", s5.consistent,
+          "（引入辅助变量数 =", s5.n_aux, "；active 同余下标 =",
+          s5.active, "）")
+    print("增广系统 A_aug =")
+    for row in s5.A_aug:
+        print("   ", row)
+    print("b_aug =", s5.b_aug)
+    print("原变量特解 x0 =", s5.particular)
+    print("原变量解差格 Z-基 =", s5.basis,
+          "（通解 x = x0 + k*basis, k ∈ Z）")
+    print("独立核验: x0+y0 =",
+          sum(A5[0][j] * s5.particular[j] for j in range(2)),
+          "；x0 mod 2 =", s5.particular[0] % 2)
+    # 增广变换链可独立重放。
+    from smithcert import replay as _replay
+    _U, _M, _V = _replay(s5.A_aug, s5.transforms)
+    print("增广变换链独立重放与 D 一致:", _M == s5.D,
+          "（日志", len(s5.transforms), "条）")
+
+    print()
+    print("=" * 70)
+    print("演示 6：非互素模数的同余冲突——可核验的整除障碍")
+    print("=" * 70)
+    # x ≡ 1 (mod 4) 且 x ≡ 2 (mod 6)：mod gcd(4,6)=2 得 1≡0，矛盾。
+    s6 = solve_mixed([], [], [[1], [1]], [1, 2], [4, 6])
+    print("条件: x ≡ 1 (mod 4) 且 x ≡ 2 (mod 6)")
+    print("可解:", s6.consistent)
+    ob6 = s6.obstruction
+    print("障碍类型:", ob6.kind, "；模数 =", ob6.modulus,
+          "；余数 =", ob6.remainder)
+    print("障碍行 w =", ob6.w, "；w*A_aug =", ob6.wA,
+          "；w*b_aug =", ob6.wb)
+    print("独立复核: w*A_aug 各分量被模数整除 =",
+          all(v % ob6.modulus == 0 for v in ob6.wA),
+          "；wb 余数 =", ob6.wb % ob6.modulus)
 
 
 if __name__ == "__main__":

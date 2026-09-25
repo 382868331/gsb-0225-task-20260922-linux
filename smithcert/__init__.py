@@ -14,6 +14,7 @@ from .errors import (
     SmithCertError,
 )
 from .solve import Obstruction, IntegerSolveResult, solve_integer
+from .mixed import MixedSolveResult, solve_mixed
 from .transform import Transform, replay
 from .smith import SmithResult, smith
 
@@ -25,6 +26,8 @@ DEFAULT_BUDGET = 100_000
 __all__ = [
     "smith",
     "solve_integer",
+    "solve_mixed",
+    "MixedSolveResult",
     "replay",
     "Transform",
     "SmithResult",
