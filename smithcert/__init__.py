@@ -13,7 +13,18 @@ from .errors import (
     NonFiniteNumberError,
     SmithCertError,
 )
-from .solve import Obstruction, IntegerSolveResult, solve_integer
+from .solve import (
+    BOUNDED_STATUS_BUDGET_EXHAUSTED,
+    BOUNDED_STATUS_FEASIBLE,
+    BOUNDED_STATUS_INFEASIBLE,
+    BOUNDED_STATUS_OPTIMAL,
+    BOUNDED_STATUS_UNSUPPORTED,
+    BoundedSolveResult,
+    IntegerSolveResult,
+    Obstruction,
+    solve_bounded_integer,
+    solve_integer,
+)
 from .transform import Transform, replay
 from .smith import SmithResult, smith
 
@@ -29,7 +40,14 @@ __all__ = [
     "Transform",
     "SmithResult",
     "IntegerSolveResult",
+    "BoundedSolveResult",
     "Obstruction",
+    "solve_bounded_integer",
+    "BOUNDED_STATUS_OPTIMAL",
+    "BOUNDED_STATUS_FEASIBLE",
+    "BOUNDED_STATUS_INFEASIBLE",
+    "BOUNDED_STATUS_BUDGET_EXHAUSTED",
+    "BOUNDED_STATUS_UNSUPPORTED",
     "SmithCertError",
     "InvalidMatrixError",
     "MatrixShapeError",
