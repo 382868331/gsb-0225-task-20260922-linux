@@ -14,6 +14,15 @@ from .errors import (
     SmithCertError,
 )
 from .solve import Obstruction, IntegerSolveResult, solve_integer
+from .bounded import (
+    BoundedSolveResult,
+    BUDGET_EXHAUSTED,
+    FEASIBLE,
+    INFEASIBLE,
+    OPTIMAL,
+    UNSUPPORTED,
+    solve_bounded_integer,
+)
 from .transform import Transform, replay
 from .smith import SmithResult, smith
 
@@ -30,6 +39,13 @@ __all__ = [
     "SmithResult",
     "IntegerSolveResult",
     "Obstruction",
+    "BoundedSolveResult",
+    "solve_bounded_integer",
+    "OPTIMAL",
+    "FEASIBLE",
+    "INFEASIBLE",
+    "UNSUPPORTED",
+    "BUDGET_EXHAUSTED",
     "SmithCertError",
     "InvalidMatrixError",
     "MatrixShapeError",
